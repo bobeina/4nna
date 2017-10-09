@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="zh_cn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+    <title>山局座的野望 - 调试页</title>
+
+    <style type="text/css">
+        red {color: #ff0000;}
+    </style>
+
+<script>
+var ws;
+var last_msg = "";
+function appendNode(data, element_type){
+    var i, j;
+    var plot, node;
+    var holder = document.getElementById("gamebox");
+    plot = document.createElement(element_type);
+    node = document.createTextNode(data);
+    plot.appendChild(node);
+    holder.appendChild(plot);
+}
+
+function appendBorder(){
+    var i, j;
+    var plot, node;
+    var holder = document.getElementById("gamebox");
+    plot = document.createElement("div");
+    node = document.createElement("hr");
+    plot.appendChild(node);
+    holder.appendChild(plot);
+}
+
+function onLoad() {
+    ws = new WebSocket("ws://192.168.0.111:10010/websocket");
+    ws.onmessage = function(e) {
+        var i;
+        var key;
+        appendNode(e.data, "div");
+    };
+
+}
+
+function sendMsg() {
+    var msg = document.getElementById('msg').value;
+    if (ws.readyState !== 1) {
+        alert(ws.readyState);
+        ws.close();
+        appendNode(["与服务器之间的连接已断开。断线重连ing..."], "red");
+        ws = new WebSocket("ws://localhost:10004/websocket");
+        setTimeout(function() {
+            appendNode("已连接", "red");
+            appendNode("", "br");
+            onLoad();
+        }, 250);
+    }else{
+        ws.send(msg);
+        last_msg = msg;
+    }
+    document.getElementById('msg').value = "";
+
+}
+</script>
+</head>
+<body onload="onLoad();">
+<div id="gamebox"></div>
+<strong></strong>&nbsp;<input type="text" id="msg" maxlength="25" placeholder="你的行动？" value="玩！" onkeydown="if(event.keyCode==13){sendMsg();}" />
+&nbsp;<input type="button" onclick="sendMsg();" value="确定" />
+</body>
+</html>
